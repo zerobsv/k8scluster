@@ -1,5 +1,7 @@
-## LIFTOFF
+## Kubernetes cluster home lab
 
-### k8s on aws
+No lifting off, staying grounded :)
 
 work in progress
+
+
