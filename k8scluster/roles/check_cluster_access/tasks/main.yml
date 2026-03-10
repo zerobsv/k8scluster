@@ -4,6 +4,15 @@
   ansible.builtin.reboot:
     reboot_timeout: 300
 
+- name: Remove .kube directory if it exists
+  become: true
+  ansible.builtin.file:
+    path: /home/{{ ansible_user }}/.kube
+    state: absent
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+    mode: '0755'
+
 - name: Create .kube directory for the user
   ansible.builtin.file:
     path: /home/{{ ansible_user }}/.kube

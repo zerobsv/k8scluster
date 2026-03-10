@@ -8,6 +8,4 @@ kubesystemd_url: "https://mirror.twds.com.tw/fedora/fedora/linux/updates/43/Ever
 
 
 pod_cidr: "192.168.0.0/16"
-
-# The loadbalancer IP is to be used as control plane endpoint
 control_plane_endpoint: "192.168.141.115:6443"
