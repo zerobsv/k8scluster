@@ -1,7 +1,7 @@
 ## Kubernetes cluster, on an Atomic/Immutable OS (Fedora Silverblue)
 
 - Multi Master, has two master nodes (2..N) for high availability/failover
-- Nginx loadbalancer fronting the two master nodes
+- Nginx loadbalancer fronting the two master nodes, can be extended to N
 - Multi Play playbook, for before and after a restart to facilitate smooth package installs
 - Admin Unlock for kubeadm init phase on master nodes and join phases
 - Cluster bootstraps two worker nodes (2..N)
@@ -10,5 +10,6 @@
   
 Work in progress, experimenting with Cilium and OTEL
 
-Aim is to improve telemetry, observability and security and learn these well
+Aim is to improve telemetry, observability, security and governance and learn these well
 
+![Multi Master k8s cluster](./multi_master_k8s_cluster.png)
