@@ -1,0 +1,57 @@
+---
+
+- name: Set SELinux to permissive
+  become: true
+  ansible.builtin.command: setenforce 0
+
+- name: Disable SELinux permanently
+  become: true
+  ansible.builtin.replace:
+    path: /etc/selinux/config
+    regexp: '^SELINUX=.*'
+    replace: 'SELINUX=permissive'
+
+- name: Install dnf-plugins-core package (rpm-ostree layering)
+  become: true
+  ansible.builtin.shell: |
+    sudo rpm-ostree install dnf-plugins-core
+  register: dnf_plugins_install
+  changed_when: dnf_plugins_install.rc == 0
+  ignore_errors: true
+
+- name: Add Docker CE repository
+  become: true
+  ansible.builtin.get_url:
+    url: https://download.docker.com/linux/fedora/docker-ce.repo
+    dest: /etc/yum.repos.d/docker-ce.repo
+    mode: '0644'
+  register: docker_repo
+
+- name: Install Docker CE and related packages (rpm-ostree layering)
+  become: true
+  ansible.builtin.shell: |
+    sudo rpm-ostree install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+  register: docker_rpm_install
+  changed_when: docker_rpm_install.rc == 0
+  ignore_errors: true
+
+
+- name: Add Kubernetes repo to yum repos
+  become: true
+  ansible.builtin.shell: |
+    cat <<EOF | sudo tee /etc/yum.repos.d/kubernetes.repo
+    [kubernetes]
+    name=Kubernetes
+    baseurl=https://pkgs.k8s.io/core:/stable:/v{{ kubernetes_version_short }}/rpm/
+    enabled=1
+    gpgcheck=1
+    gpgkey=https://pkgs.k8s.io/core:/stable:/v{{ kubernetes_version_short }}/rpm/repodata/repomd.xml.key
+    EOF
+
+- name: Install kubeadm, kubelet and kubectl (rpm-ostree)
+  become: true
+  ansible.builtin.shell: |
+    sudo rpm-ostree install {{ kubeadm_url }} {{ kubelet_url }} {{ kubectl_url }} {{ kubesystemd_url }}
+  register: rpm_install
+  changed_when: rpm_install.rc == 0
+  ignore_errors: true

@@ -1,0 +1,96 @@
+---
+
+- name: Remove output text file, if it exists
+  become: true
+  ansible.builtin.file:
+    path: /home/{{ ansible_user }}/kubeadm_init_output.txt
+    state: absent
+
+- name: Run the kubeadm init command with the control plane endpoint and pod CIDR
+  become: true
+  ansible.builtin.shell:
+    cmd: |
+      sudo kubeadm init --control-plane-endpoint="{{ control_plane_endpoint }}" --pod-network-cidr="{{ pod_cidr }}" --upload-certs > /home/{{ ansible_user }}/kubeadm_init_output.txt
+    executable: /bin/bash
+
+- name: Set up kubeconfig for the user
+  become: true
+  ansible.builtin.shell: |
+    sudo mkdir -p /home/{{ ansible_user }}/.kube
+    sudo mkdir -p /root/.kube
+    sudo cp /etc/kubernetes/admin.conf /home/{{ ansible_user }}/.kube/config
+    sudo cp /etc/kubernetes/admin.conf /root/.kube/config
+    sudo chown {{ ansible_user }}:{{ ansible_user }} /home/{{ ansible_user }}/.kube/config
+    sudo chown root:root /root/.kube/config
+    export KUBECONFIG=/home/{{ ansible_user }}/.kube/config
+    export KUBECONFIG=/root/.kube/config
+
+- name: Wait for kube-apiserver to be ready
+  become: true
+  ansible.builtin.shell: |
+    kubectl get nodes
+
+- name: Install Flannel network plugin
+  become: true
+  ansible.builtin.shell: |
+    kubectl apply -f /home/{{ ansible_user }}/kube-flannel.yml
+
+- name: Get certificate key from kubeadm init output
+  become: true
+  ansible.builtin.shell: |
+    CERT_KEY=$(cat /home/{{ ansible_user }}/kubeadm_init_output.txt | grep certificate-key | head -n 1 | sed -e 's/^.*certificate-key \(.*\).*$/\1/g')
+    echo $CERT_KEY > /home/{{ ansible_user }}/kubeadm_cert_key.txt
+
+- name: Display join command for control plane nodes
+  become: true
+  ansible.builtin.shell: |
+    echo -n "sudo " > /home/{{ ansible_user }}/kubeadm_join_control_plane.sh
+    sudo kubeadm token create --print-join-command --certificate-key $(cat /home/{{ ansible_user }}/kubeadm_cert_key.txt) >> /home/{{ ansible_user }}/kubeadm_join_control_plane.sh
+    chmod +x /home/{{ ansible_user }}/kubeadm_join_control_plane.sh
+
+- name: Display join command for worker nodes
+  become: true
+  ansible.builtin.shell: |
+    echo -n "sudo " > /home/{{ ansible_user }}/kubeadm_join_command.sh
+    sudo kubeadm token create --print-join-command >> /home/{{ ansible_user }}/kubeadm_join_command.sh
+    chmod +x /home/{{ ansible_user }}/kubeadm_join_command.sh
+
+- name: Show kubectl nodes
+  become: true
+  ansible.builtin.shell: |
+    kubectl get nodes
+
+- name: Copy kubeconfig, join commands back to control machine
+  ansible.builtin.fetch:
+    src: /home/{{ ansible_user }}/.kube/config
+    dest: /tmp/kube_config
+    flat: yes
+
+- name: Copy join command for control plane nodes back to control machine
+  ansible.builtin.fetch:
+    src: /home/{{ ansible_user }}/kubeadm_join_control_plane.sh
+    dest: /tmp/kubeadm_join_control_plane.sh
+    flat: yes
+
+- name: Copy join command for worker nodes back to control machine
+  ansible.builtin.fetch:
+    src: /home/{{ ansible_user }}/kubeadm_join_command.sh
+    dest: /tmp/kubeadm_join_command.sh
+    flat: yes
+
+- name: Remove temporary files from master node
+  become: true
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: absent
+  loop:
+    - /home/{{ ansible_user }}/kubeadm_init_output.txt
+    - /home/{{ ansible_user }}/kubeadm_join_command.sh
+    - /home/{{ ansible_user }}/kubeadm_join_control_plane.sh
+    - /home/{{ ansible_user }}/kubeadm_join_worker.sh
+    - /home/{{ ansible_user }}/kubeadm_cert_key.txt
+
+- name: Remove root kubeconfig
+  become: true
+  ansible.builtin.shell: |
+    sudo rm -rf /root/.kube

@@ -1,0 +1,25 @@
+---
+# This role is split into two task files to support rpm-ostree layering which
+# requires a reboot between layering and using the packages.
+#
+# Usage options:
+# 1) Two-playbook pattern (recommended):
+#    - Create a playbook with two plays:
+#      * Play 1: run this role's `pre_reboot` tasks (tasks_from: pre_reboot)
+#      * The host will reboot during/after Play 1 when layering occurred.
+#      * Play 2: run this role's `post_reboot` tasks (tasks_from: post_reboot)
+#
+# 2) Single-role convenience: running this role's default `main` will execute
+#    the pre_reboot tasks, perform a conditional reboot, then continue with
+#    the post_reboot tasks on the same connection only if no reboot occurred.
+#    For most rpm-ostree flows you should prefer the two-playbook pattern.
+
+- import_tasks: pre_reboot.yml
+
+- name: Reboot if rpm-ostree layered packages were installed
+  become: true
+  ansible.builtin.reboot:
+    reboot_timeout: 600
+  when: dnf_plugins_install.changed or docker_rpm_install.changed or rpm_install.changed
+
+- import_tasks: post_reboot.yml

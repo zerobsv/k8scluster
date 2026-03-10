@@ -1,0 +1,36 @@
+---
+- name: Reboot all nodes to remove ostree admin unlock state
+  become: true
+  ansible.builtin.reboot:
+    reboot_timeout: 300
+
+- name: Create .kube directory for the user
+  ansible.builtin.file:
+    path: /home/{{ ansible_user }}/.kube
+    state: directory
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+    mode: '0755'
+
+- name: Copy kubeconfig from control node to all nodes
+  ansible.builtin.copy:
+    src: /tmp/kube_config
+    dest: /home/{{ ansible_user }}/.kube/config
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+    mode: '0755'
+
+- name: Set up kubeconfig for the user
+  ansible.builtin.shell: |
+    sudo chown {{ ansible_user }}:{{ ansible_user }} /home/{{ ansible_user }}/.kube/config
+    export KUBECONFIG=/home/{{ ansible_user }}/.kube/config
+    echo "export KUBECONFIG=/home/{{ ansible_user }}/.kube/config" >> /home/{{ ansible_user }}/.bashrc
+
+- name: Check access to the Kubernetes Cluster
+  ansible.builtin.shell: |
+    kubectl get nodes
+  register: kubectl_output
+
+- name: Display Kubernetes Cluster Access Result
+  ansible.builtin.debug:
+    msg: "{{ kubectl_output.stdout_lines }}"

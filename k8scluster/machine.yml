@@ -1,0 +1,50 @@
+- name: Play for initializing Kubernetes Nodes
+  hosts: all
+  become: true
+  become_method: ansible.builtin.sudo
+  roles:
+    - role: install_node
+    - role: install_packages
+    - role: install_k8snodes
+
+- name: Install Load Balancer for Kubernetes Masters
+  hosts: loadbalancers
+  become: true
+  become_method: ansible.builtin.sudo
+  roles:
+    - role: install_loadbalancer
+
+- name: Admin Unlock all the nodes before bootstrapping
+  hosts: all
+  become: true
+  become_method: ansible.builtin.sudo
+  roles:
+    - role: admin_unlock_nodes
+
+- name: Initialize the first Kubernetes Master Node
+  hosts: first_master
+  become: true
+  become_method: ansible.builtin.sudo
+  roles:
+    - role: init_first_master
+
+- name: Initialize additional Kubernetes Master Nodes
+  hosts: other_masters
+  become: true
+  become_method: ansible.builtin.sudo
+  roles:
+    - role: init_other_masters
+
+- name: Join Kubernetes Worker Nodes to the Cluster
+  hosts: workers
+  become: true
+  become_method: ansible.builtin.sudo
+  roles:
+    - role: init_worker_nodes
+
+- name: Check access to the Kubernetes Cluster
+  hosts: all
+  become: false
+  tags: check_cluster_access
+  roles:
+    - role: check_cluster_access

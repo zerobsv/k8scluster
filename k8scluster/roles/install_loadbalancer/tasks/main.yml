@@ -1,0 +1,36 @@
+---
+
+- name: Layer nginx and required modules using rpm-ostree
+  become: true
+  ansible.builtin.shell: |
+    sudo rpm-ostree install nginx nginx-mod-stream
+  register: ostree_install
+  changed_when: ostree_install.rc == 0
+  ignore_errors: true
+
+- name: Reboot if rpm-ostree layering changed
+  become: true
+  ansible.builtin.reboot:
+    msg: "Rebooting to apply rpm-ostree layered packages"
+    pre_reboot_delay: 0
+    reboot_timeout: 600
+    test_command: whoami
+  when: ostree_install is defined and ostree_install.changed
+
+- name: Write nginx load balancer configuration
+  become: true
+  ansible.builtin.template:
+    src: loadbalancer.conf.j2
+    dest: /etc/nginx/nginx.conf
+    owner: root
+    group: root
+    mode: '0644'
+  notify:
+    - Restart nginx
+
+- name: Ensure nginx is started and enabled
+  become: true
+  ansible.builtin.service:
+    name: nginx
+    state: started
+    enabled: true

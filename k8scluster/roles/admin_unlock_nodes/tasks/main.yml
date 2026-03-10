@@ -1,0 +1,6 @@
+---
+
+- name: Admin unlock ostree for kubeadm init
+  ansible.builtin.shell: |
+    sudo ostree admin unlock --hotfix
+  ignore_errors: true

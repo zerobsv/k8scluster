@@ -1,0 +1,31 @@
+# For more information on configuration, see:
+#   * Official English Documentation: http://nginx.org/en/docs/
+#   * Official Russian Documentation: http://nginx.org/ru/docs/
+
+user nginx;
+error_log /var/log/nginx/error.log notice;
+pid /run/nginx.pid;
+
+# Load dynamic modules. See /usr/share/doc/nginx/README.dynamic.
+include /usr/share/nginx/modules/*.conf;
+
+# Enable stream (TCP) context
+worker_processes 10;
+
+events {
+    worker_connections 10240;
+}
+
+stream {
+    upstream kubeapi_server {
+        # List of master nodes
+        {% for host in groups['k8s_masters'] %}
+        server {{ hostvars[host]['ansible_host']}}:6443;
+        {% endfor %}
+    }
+
+    server {
+        listen 6443;  
+        proxy_pass kubeapi_server;
+    }
+}

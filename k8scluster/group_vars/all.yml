@@ -1,0 +1,13 @@
+kubernetes_version_short: "1.35"
+kubernetes_version: "1.35.0"
+
+kubeadm_url: "https://mirror.twds.com.tw/fedora/fedora/linux/updates/43/Everything/x86_64/Packages/k/kubernetes1.35-kubeadm-1.35.2-1.fc43.x86_64.rpm"
+kubelet_url: "https://mirror.twds.com.tw/fedora/fedora/linux/updates/43/Everything/x86_64/Packages/k/kubernetes1.35-1.35.2-1.fc43.x86_64.rpm"
+kubectl_url: "https://mirror.twds.com.tw/fedora/fedora/linux/updates/43/Everything/x86_64/Packages/k/kubernetes1.35-client-1.35.2-1.fc43.x86_64.rpm"
+kubesystemd_url: "https://mirror.twds.com.tw/fedora/fedora/linux/updates/43/Everything/x86_64/Packages/k/kubernetes1.35-systemd-1.35.2-1.fc43.x86_64.rpm"
+
+
+pod_cidr: "192.168.0.0/16"
+
+# The loadbalancer IP is to be used as control plane endpoint
+control_plane_endpoint: "192.168.141.115:6443"

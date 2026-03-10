@@ -1,0 +1,48 @@
+---
+
+- name: Run the date command
+  ansible.builtin.command: date
+  register: system_date
+
+- name: Show the mounted file systems
+  ansible.builtin.command: df -h
+  register: mount_points
+
+- name: List all the disks attached to the node
+  ansible.builtin.command: lsblk
+  register: disk_list
+
+- name: Force overwrite /etc/hosts file with current inventory hosts
+  ansible.builtin.copy:
+    dest: /etc/hosts
+    content: |
+      # Loopback network, do not remove
+      127.0.0.1   localhost localhost.localdomain localhost4 localhost4.localdomain4
+      ::1         localhost localhost.localdomain localhost6 localhost6.localdomain6
+
+      # Kubernetes Cluster Nodes
+      {% for host in ansible_play_hosts %}
+      {{ hostvars[host]['ansible_host']}}    {{ host }}    
+      {% endfor %}
+      
+    mode: '0644'
+    owner: root
+    group: root
+
+- name: Restart networking service to apply new /etc/hosts
+  become: true
+  ansible.builtin.systemd:
+    name: NetworkManager
+    state: restarted
+
+- name: Print the date
+  ansible.builtin.debug:
+    msg: "The system date is: {{ system_date.stdout }}"
+
+- name: Print the list of disks
+  ansible.builtin.debug:
+    var: disk_list.stdout_lines
+
+- name: Print the list of mount points
+  ansible.builtin.debug:
+    var: mount_points.stdout_lines

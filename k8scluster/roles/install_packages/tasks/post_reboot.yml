@@ -1,0 +1,39 @@
+---
+- name: Ensure Docker service is started and enabled
+  become: true
+  ansible.builtin.service:
+    name: docker
+    state: started
+    enabled: true
+
+- name: Ensure docker group exists
+  become: true
+  ansible.builtin.group:
+    name: docker
+    state: present
+
+- name: Add current user to docker group
+  become: true
+  ansible.builtin.user:
+    name: "{{ ansible_user_id }}"
+    groups: docker
+    append: yes
+
+- name: Verify Docker installation by running hello-world container
+  become: true
+  ansible.builtin.command: docker run --rm hello-world
+  register: docker_hello_world
+  changed_when: false
+
+- name: Display Docker hello-world output
+  ansible.builtin.debug:
+    var: docker_hello_world.stdout_lines
+
+- name: Check LSM status after reboot
+  become: true
+  ansible.builtin.command: cat /sys/kernel/security/lsm
+  register: cmdline_output
+
+- name: Display LSM status
+  ansible.builtin.debug:
+    var: cmdline_output.stdout_lines

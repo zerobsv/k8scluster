@@ -1,0 +1,99 @@
+---
+  
+- name: Enable kubelet service
+  become: true
+  ansible.builtin.systemd:
+    name: kubelet
+    enabled: yes
+    state: started
+    daemon_reload: yes
+
+- name: Load br_netfilter module
+  become: true
+  ansible.builtin.modprobe:
+    name: br_netfilter
+    state: present
+
+- name: Ensure net.bridge.bridge-nf-call-iptables is set to 1
+  become: true
+  ansible.builtin.sysctl:
+    name: net.bridge.bridge-nf-call-iptables
+    value: '1'
+    state: present
+    reload: yes
+
+- name: Ensure net.bridge.bridge-nf-call-ip6tables is set to 1
+  become: true
+  ansible.builtin.sysctl:
+    name: net.bridge.bridge-nf-call-ip6tables
+    value: '1'
+    state: present
+    reload: yes
+
+- name: Generate containerd configuration file
+  become: true
+  ansible.builtin.shell: |
+    sudo mv /etc/containerd/config.toml /etc/containerd/config.toml.bak
+    containerd config default | sudo tee /etc/containerd/config.toml
+
+- name: Set SystemdCgroup to true in containerd config
+  become: true
+  ansible.builtin.replace:
+    path: /etc/containerd/config.toml
+    regexp: 'SystemdCgroup = false'
+    replace: 'SystemdCgroup = true'
+
+- name: Restart containerd to apply new configuration
+  become: true
+  ansible.builtin.systemd:
+    name: containerd
+    state: restarted
+    enabled: yes
+
+- name: Turn off swap
+  become: true
+  ansible.builtin.command: sudo swapoff -a
+
+- name: Mask swap using systemd
+  become: true
+  ansible.builtin.systemd:
+    name: swap.target
+    masked: yes
+
+- name: Copy scripts to home directory
+  become: true
+  ansible.builtin.copy:
+    src: "{{ item }}"
+    dest: /home/{{ ansible_user }}/
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+    mode: '0755'
+  with_items:
+    - kube-flannel.yml
+    - open_ports.sh
+    - clean_flannel.sh
+
+- name: Open required firewall ports for Kubernetes master
+  become: true
+  ansible.builtin.shell: |
+    sudo /home/{{ ansible_user }}/open_ports.sh
+
+- name: Clean up any existing flannel configuration
+  become: true
+  ansible.builtin.shell: |
+    sudo /home/{{ ansible_user }}/clean_flannel.sh
+
+- name: Modify kube-flannel.yml pod network CIDR
+  become: true
+  ansible.builtin.replace:
+    path: /home/{{ ansible_user }}/kube-flannel.yml
+    regexp: '192.168.0.0/16'
+    replace: "{{ pod_cidr }}"
+
+- name: Delete stale etcd state and reset kubeadm
+  become: true
+  ansible.builtin.shell: |
+    sudo rm -rf /etc/kubernetes/pki/etcd /var/lib/etcd/
+    sudo kubeadm reset -f
+    sudo rm -rf /etc/cni/net.d
+

@@ -1,0 +1,65 @@
+---
+
+- name: Copy join command from control node to worker nodes
+  become: true
+  ansible.builtin.copy:
+    src: /tmp/kubeadm_join_command.sh
+    dest: /home/{{ ansible_user }}/kubeadm_join_command.sh
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+    mode: '0755'
+
+- name: Create .kube directory for the user
+  become: true
+  ansible.builtin.file:
+    path: /home/{{ ansible_user }}/.kube
+    state: directory
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+    mode: '0644'
+
+- name: Copy kubeconfig from control node to other master nodes
+  become: true
+  ansible.builtin.copy:
+    src: /tmp/kube_config
+    dest: /home/{{ ansible_user }}/.kube/config
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+    mode: '0644'
+
+- name: Join the other woker nodes to the Kubernetes cluster
+  become: true
+  ansible.builtin.shell: |
+    sudo /home/{{ ansible_user }}/kubeadm_join_command.sh
+
+- name: Set up kubeconfig for the user
+  ansible.builtin.shell: |
+    sudo mkdir -p /root/.kube
+    sudo chown {{ ansible_user }}:{{ ansible_user }} /home/{{ ansible_user }}/.kube/config
+    sudo cp /home/{{ ansible_user }}/.kube/config /root/.kube/config
+    sudo chown root:root /root/.kube/config
+    export KUBECONFIG=/home/{{ ansible_user }}/.kube/config
+    export KUBECONFIG=/root/.kube/config
+
+- name: Show kubectl nodes from other master nodes
+  become: true
+  ansible.builtin.shell: |
+    kubectl get nodes
+
+- name: Remove temporary files from worker node
+  become: true
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: absent
+  loop:
+    - /home/{{ ansible_user }}/kubeadm_init_output.txt
+    - /home/{{ ansible_user }}/kubeadm_join_command.sh
+    - /home/{{ ansible_user }}/kubeadm_join_control_plane.sh
+    - /home/{{ ansible_user }}/kubeadm_join_worker.sh
+    - /home/{{ ansible_user }}/kubeadm_cert_key.txt
+
+- name: Remove root kubeconfig
+  become: true
+  ansible.builtin.shell: |
+    sudo rm -rf /root/.kube
+    export KUBECONFIG=/home/{{ ansible_user }}/.kube/config

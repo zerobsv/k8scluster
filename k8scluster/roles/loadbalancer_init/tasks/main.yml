@@ -1,0 +1,19 @@
+---
+
+- name: Create .kube directory for the user
+  become: true
+  ansible.builtin.file:
+    path: /home/{{ ansible_user }}/.kube
+    state: directory
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+    mode: '0644'
+
+- name: Copy kubeconfig from control node to load balancer
+  become: true
+  ansible.builtin.copy:
+    src: /tmp/kube_config
+    dest: /home/{{ ansible_user }}/.kube/config
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+    mode: '0644'
