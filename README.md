@@ -1,4 +1,4 @@
-## Kubernetes cluster, on an Atomic/Immutable OS such as Fedora Silverblue
+## Kubernetes cluster, on an Atomic/Immutable OS (Fedora Silverblue)
 
 - Multi Master, has two master nodes for high availability/failover
 - Nginx loadbalancer fronting the two master nodes
