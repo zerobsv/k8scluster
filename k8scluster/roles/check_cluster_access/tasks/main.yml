@@ -1,9 +1,9 @@
 ---
 
-- name: Reboot all nodes to remove usroverlay
-  become: true
-  ansible.builtin.reboot:
-    reboot_timeout: 300
+# - name: Reboot all nodes to remove usroverlay
+#   become: true
+#   ansible.builtin.reboot:
+#     reboot_timeout: 300
 
 - name: Remove .kube directory if it exists
   become: true

@@ -30,10 +30,10 @@
   ansible.builtin.shell: |
     kubectl get nodes
 
-- name: Install Flannel network plugin
+- name: Install Cilium CNI plugin
   become: true
   ansible.builtin.shell: |
-    kubectl apply -f /home/{{ ansible_user }}/kube-flannel.yml
+    cilium install --wait
 
 - name: Get certificate key from kubeadm init output
   become: true
