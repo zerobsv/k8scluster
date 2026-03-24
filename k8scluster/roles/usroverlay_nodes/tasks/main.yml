@@ -1,0 +1,6 @@
+---
+
+- name: Changes to usr rpm-ostree for kubeadm init
+  ansible.builtin.shell: |
+    sudo rpm-ostree usroverlay
+  ignore_errors: true

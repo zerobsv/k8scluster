@@ -14,12 +14,12 @@
   roles:
     - role: install_loadbalancer
 
-- name: Admin Unlock all the nodes before bootstrapping
+- name: Allow User Overlay on all the nodes before bootstrapping
   hosts: all
   become: true
   become_method: ansible.builtin.sudo
   roles:
-    - role: admin_unlock_nodes
+    - role: usroverlay_nodes
 
 - name: Initialize the first Kubernetes Master Node
   hosts: first_master

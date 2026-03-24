@@ -2,8 +2,8 @@
 
 - Multi Master, has two master nodes (2..N) for high availability/failover
 - Nginx loadbalancer fronting the two master nodes, can be extended to N
-- Multi Play playbook, for before and after a restart to facilitate smooth package installs
-- Admin Unlock for kubeadm init phase on master nodes and join phases
+- Multi Play playbook, for before and after a restart to facilitate package installs
+- Kubeadm init phase on master nodes and join phases
 - Cluster bootstraps two worker nodes (2..N)
 
 (2..N) -> Means that it can be generalized to N

@@ -1,5 +1,6 @@
 ---
-- name: Reboot all nodes to remove ostree admin unlock state
+
+- name: Reboot all nodes to remove usroverlay
   become: true
   ansible.builtin.reboot:
     reboot_timeout: 300

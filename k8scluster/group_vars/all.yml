@@ -8,4 +8,4 @@ kubesystemd_url: "https://mirror.twds.com.tw/fedora/fedora/linux/updates/43/Ever
 
 
 pod_cidr: "192.168.0.0/16"
-control_plane_endpoint: "192.168.141.115:6443"
+control_plane_endpoint: "192.168.142.132:6443"
