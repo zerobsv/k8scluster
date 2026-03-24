@@ -5,8 +5,9 @@
 - Multi Play playbook, for before and after a restart to facilitate package installs
 - Kubeadm init phase on master nodes and join phases
 - Cluster bootstraps two worker nodes (2..N)
+- Using Cilium CNI instead of Flannel
 
-(2..N) -> Means that it can be generalized to N
+(2..N) -> Installed on two nodes, can be generalized to N
   
 Work in progress, experimenting with Cilium and OTEL
 
