@@ -4,7 +4,7 @@
   ansible.builtin.command: date
   register: system_date
 
-- name: Show the mounted file systems
+- name: Show mounted file systems
   ansible.builtin.command: df -h
   register: mount_points
 

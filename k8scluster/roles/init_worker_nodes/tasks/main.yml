@@ -41,7 +41,7 @@
     export KUBECONFIG=/home/{{ ansible_user }}/.kube/config
     export KUBECONFIG=/root/.kube/config
 
-- name: Show kubectl nodes from other master nodes
+- name: Show kubectl nodes from worker nodes
   become: true
   ansible.builtin.shell: |
     kubectl get nodes

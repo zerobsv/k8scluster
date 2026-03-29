@@ -13,4 +13,10 @@ Work in progress, experimenting with Cilium and OTEL
 
 Aim is to improve telemetry, observability, security and governance and learn these well
 
+## Information
+
+- Ideally, best practice is to use block and rescue, which I'm not doing because I've
+organized the whole thing into modular plays and I would prefer just re-running it
+
+
 ![Multi Master k8s cluster](./multi_master_k8s_cluster.png)

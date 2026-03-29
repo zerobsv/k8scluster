@@ -30,8 +30,12 @@
   ansible.builtin.shell: |
     kubectl get nodes
 
+- name: Clean up any existing cilium installation
+  ignore_errors: true
+  ansible.builtin.shell: |
+    cilium uninstall --wait
+
 - name: Install Cilium CNI plugin
-  become: true
   ansible.builtin.shell: |
     cilium install --wait
 

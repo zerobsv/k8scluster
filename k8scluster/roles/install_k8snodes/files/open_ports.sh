@@ -6,7 +6,6 @@ sudo firewall-cmd --zone=public --permanent --add-port=10256/tcp
 sudo firewall-cmd --zone=public --permanent --add-port=10257/tcp
 sudo firewall-cmd --zone=public --permanent --add-port=10259/tcp
 
-# Flannel vxlan
 sudo firewall-cmd --permanent --add-port=8472/udp
 
 sudo firewall-cmd --zone=public --permanent --add-service=http

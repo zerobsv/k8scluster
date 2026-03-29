@@ -5,11 +5,20 @@
   roles:
     - role: install_node
     - role: install_packages
+
+
+- name: Install containerd and CNI plugins on all nodes
+  hosts: all
+  become: true
+  become_method: ansible.builtin.sudo
+  tags: install_k8snodes
+  roles:
     - role: install_k8snodes
 
 - name: Install Load Balancer for Kubernetes Masters
   hosts: loadbalancers
   become: true
+  tags: install_loadbalancer
   become_method: ansible.builtin.sudo
   roles:
     - role: install_loadbalancer
@@ -24,6 +33,7 @@
 - name: Initialize the first Kubernetes Master Node
   hosts: first_master
   become: true
+  tags: init_first_master
   become_method: ansible.builtin.sudo
   roles:
     - role: init_first_master
@@ -31,6 +41,7 @@
 - name: Initialize additional Kubernetes Master Nodes
   hosts: other_masters
   become: true
+  tags: init_other_masters
   become_method: ansible.builtin.sudo
   roles:
     - role: init_other_masters
@@ -38,6 +49,7 @@
 - name: Join Kubernetes Worker Nodes to the Cluster
   hosts: workers
   become: true
+  tags: join_workers
   become_method: ansible.builtin.sudo
   roles:
     - role: init_worker_nodes

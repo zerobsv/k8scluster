@@ -79,16 +79,23 @@
     sudo /home/{{ ansible_user }}/open_ports.sh
 
 - name: Install Cilium CLI
-  become: true
   ansible.builtin.shell: |
-    sudo /home/{{ ansible_user }}/install_cilium.sh
+    /home/{{ ansible_user }}/install_cilium.sh
 
-- name: Clean up any existing cilium installation
+- name: Add exec permissions to cilium-dbg
   become: true
   ansible.builtin.shell: |
-    cilium uninstall --wait
     sudo chmod +x /home/{{ ansible_user }}/cilium-dbg
-    sudo /home/{{ ansible_user }}/cilium-dbg post-uninstall-cleanup --all-state
+
+- name: Clean up any existing cilium process state
+  become: true
+  ignore_errors: true
+  ansible.builtin.shell: |
+    sudo rm /var/run/cilium/cilium.pid
+
+- name: Run cilium-dbg post-uninstall-cleanup to remove any stale state
+  ansible.builtin.shell: |
+    /home/{{ ansible_user }}/cilium-dbg post-uninstall-cleanup --all-state
 
 - name: Delete stale etcd state and reset kubeadm
   become: true
