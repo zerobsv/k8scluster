@@ -20,7 +20,7 @@
     state: directory
     owner: "{{ ansible_user }}"
     group: "{{ ansible_user }}"
-    mode: '0755'
+    mode: '0555'
 
 - name: Copy kubeconfig from control node to all nodes
   ansible.builtin.copy:
@@ -28,7 +28,7 @@
     dest: /home/{{ ansible_user }}/.kube/config
     owner: "{{ ansible_user }}"
     group: "{{ ansible_user }}"
-    mode: '0755'
+    mode: '0555'
 
 - name: Set up kubeconfig for the user
   ansible.builtin.shell: |

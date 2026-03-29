@@ -23,7 +23,7 @@
     dest: /etc/nginx/nginx.conf
     owner: "{{ ansible_user }}"
     group: "{{ ansible_user }}"
-    mode: '0644'
+    mode: '0544'
   notify:
     - Restart nginx
     - Ensure nginx is started and enabled
